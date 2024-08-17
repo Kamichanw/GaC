@@ -22,11 +22,11 @@ We support parallel execution of the LLMs involved in the ensemble to save time.
 | 3      | Qwen1.5-72B-Chat                   | 77.79    | 83.33     | 48.94    | 65.69        | 27.02   | 60.55                    | 2024/02/04    | 102.11 *ms/token*         |
 | 4      | Llama-3-70B-Instruct               | 79.68    | 90.00     | 57.13    | 79.12        | 35.57   | 68.30                    | 2024/04/18    | 150.32 *ms/token*         |
 | 5      | Qwen2-72B-Instruct                 | 82.30    | 89.70     | 62.57    | 73.58        | 33.11   | 68.25                    | 2024/06/07    | 113.91 *ms/token*         |
-| 6      | GaC(Yi + Mixtral)                       | 74.83    | 71.21     | 52.64    | 75.60        | 33.52   | 61.56 **↑3.13%**          | ~2023/12/11   | 98.13 *ms/token*          |
-| 7      | GaC(Qwen1.5-72B + Yi)                   | 79.83    | 77.27     | 52.05    | 70.88        | 33.80   | 62.77 **↑3.65%**          | ~2024/02/04   | 103.69 *ms/token*         |
-| 8      | GaC(Qwen1.5-72B + Mixtral)              | 79.55    | 75.76     | 54.19    | 75.71        | 31.09   | 63.26 **↑4.47%**          | ~2024/02/04   | 112.83 *ms/token*         |
-| 9      | GaC(Llama-3 + Qwen1.5-72B)              | 81.49    | 87.06     | 56.73    | 78.60        | 36.01   | 67.98 **↓0.47%**          | ~2024/04/18   | 153.96 *ms/token*         |
-| 10     | GaC(Qwen2-72B + Llama-3)                | 83.54    | 90.91     | 63.99    | 79.29        | 37.65   | 71.08 **↑4.06%**          | ~2024/06/07   | 151.56 *ms/token*         |
+| 6      | **GaC**(Yi + Mixtral)                       | 74.83    | 71.21     | 52.64    | 75.60        | 33.52   | 61.56 **↑3.13%**          | ~2023/12/11   | 98.13 *ms/token*          |
+| 7      | **GaC**(Qwen1.5-72B + Yi)                   | 79.83    | 77.27     | 52.05    | 70.88        | 33.80   | 62.77 **↑3.65%**          | ~2024/02/04   | 103.69 *ms/token*         |
+| 8      | **GaC**(Qwen1.5-72B + Mixtral)              | 79.55    | 75.76     | 54.19    | 75.71        | 31.09   | 63.26 **↑4.47%**          | ~2024/02/04   | 112.83 *ms/token*         |
+| 9      | **GaC**(Llama-3 + Qwen1.5-72B)              | 81.49    | 87.06     | 56.73    | 78.60        | 36.01   | 67.98 **↓0.47%**          | ~2024/04/18   | 153.96 *ms/token*         |
+| 10     | **GaC**(Qwen2-72B + Llama-3)                | 83.54    | 90.91     | 63.99    | 79.29        | 37.65   | 71.08 **↑4.06%**          | ~2024/06/07   | 151.56 *ms/token*         |
 
 > **Note**: Ensemble of available SOTA LLMs from different periods. The top part lists the individual models, while the bottom part shows the ensemble results (model names abbreviated). **↑** indicates the percentage improvement over the individual models.
 
