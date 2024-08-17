@@ -30,14 +30,24 @@ We support parallel execution of the LLMs involved in the ensemble to save time.
 
 > **Note**: Ensemble of available SOTA LLMs from different periods. The top part lists the individual models, while the bottom part shows the ensemble results (model names abbreviated). **↑** indicates the percentage improvement over the individual models.
 
-## System Requirements
+## Table of Contents
+[System Requirements](#1)
+
+[Get Starteds](#2)
+- [Create a New Environment](#3)
+- [Install GaC Required Packages](#4)
+- [Launch GaC Server](#5)
+- [Run GaC Ensemble](#6)
+  
+
+## <a name="1"></a>System Requirements
 - **Operating System**: Ubuntu 20.04. We have not tested on Windows.
 - **Python Version**: 3.11
 - **GPU**: Ensure that your GPU has enough RAM to load all the models you want to ensemble.
 - **Environment Management Tool**: Anaconda or any other suitable tool
 
-## Get Started
-### Create a New Environment
+## <a name="2"></a>Get Started
+### <a name="3"></a>Create a New Environment
 1. Open your terminal.
 2. Create and activate a new conda environment:
 
@@ -46,14 +56,14 @@ conda create -n gac_env python=3.11
 conda activate gac_env
 ```
 
-### Install GaC Required Packages
+### <a name="4"></a>Install GaC Required Packages
 
 ```sh
 cd [root-of-this-repo]/GaC
 pip install -r requirements.txt
 ```
 
-### Launch GaC Server
+### <a name="5"></a>Launch GaC Server
 
 We have integrated our work into an API server, which can be configured with a YAML file at startup to determine which LLMs to use for ensembling. An example is shown below:
 
@@ -110,7 +120,7 @@ To start the GaC server, use the following command in your terminal:
 python gac_api_server.py --config-path [path-to-your-config-file.yaml] --host 0.0.0.0 --port 8000
 ```
 
-### Run GaC Ensemble
+### <a name="6"></a>Run GaC Ensemble
 
 After setting up the API, you can directly execute the GaC ensemble by making calls as demonstrated in `call.py`. Here’s an explanation of the key parameters:
 
@@ -142,7 +152,7 @@ response = requests.post(url, json=data)
 print(response.json())
 ```
 
-## Citation
+## <a name="7"></a>Citation
 ```bibtex
 @misc{yu2024breaking,
   title={Breaking the Ceiling of the LLM Community by Treating Token Generation as a Classification for Ensembling},
