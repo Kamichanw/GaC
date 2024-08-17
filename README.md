@@ -97,7 +97,7 @@ CONFIG_API_SERVER:
 - **CONFIG_API_SERVER**: List of models to be used in the ensemble. Each model configuration includes:
   - **weight**: Local path to the model weight. You can also choose to use the Hugging Face model card name to download automatically.
   - **max_memory**: Controls how much memory each GPU uses. Since each model is managed independently by Ray, the GPU IDs always start from **0**. For example, if you set `num_gpus` to 2, you should allocate the maximum memory for each GPU, such as `{0: 'xxGiB', 1: 'xxGiB'}`.
-  - **num_gpus**: Number of GPUs allocated to this model. Controlled by Ray. To load two models on one GPU, set `num_gpus` to 0.5 for both models.
+  - **num_gpus**: Number of GPUs allocated to this model. Controlled by Ray. To load two models on one GPU, set `num_gpus` to 0.5 for both models. So, a total of 0.5+0.5=1 GPU will be used in this case.
   - **priority**: If all models are 'supportive', all tokens will be ensembled. For threshold-based ensembling, set the gate model's priority to "primary".
 - **NORM_TYPE_API_SERVER**: Ensemble weight type, 'average' or 'score'. 'Score' means each model's output vector in the GaC ensemble is weighted by its score divided by the total score.
 - **THRESHOLD_API_SERVER**: Threshold for ensemble. This parameter is ineffective if all models are supportive.
