@@ -6,7 +6,7 @@ This work (**GaC**) allows multiple heterogeneous LLMs to ensemble at each gener
 We provide two types of ensemble methods:
 
 1. **Every Step Ensemble:** All LLMs ensemble at each generation step.
-2. **Thresholded Ensemble:** A primary LLM is specified, and ensemble is performed only if the maximum confidence token of the primary LLM at a step is below a threshold, thereby saving computational resources.
+2. **Thresholded Ensemble:** A primary(gate) LLM is specified, and ensemble is performed only if the maximum confidence token of the primary LLM at a step is below a threshold, thereby saving computational resources.
 
 We support parallel execution of the LLMs involved in the ensemble to save time. If each LLM is allocated to a different GPU, the latency of ensembling is almost the same as using a single LLM, all managed by Ray.
 
