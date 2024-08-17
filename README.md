@@ -10,7 +10,7 @@ We provide two types of ensemble methods:
 
 We support parallel execution of the LLMs involved in the ensemble to save time. If each LLM is allocated to a different GPU, the latency of ensembling is almost the same as using a single LLM, all managed by Ray.
 
-![Method Diagram](www.xxx.com)
+![Method Diagram](https://github.com/yaoching0/GaC/blob/main/pics/overview.png)
 
 
 ## GaC Ensemble Results
