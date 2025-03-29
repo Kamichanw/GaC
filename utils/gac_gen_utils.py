@@ -19,6 +19,7 @@ from transformers.generation.utils import GenerateOutput, GreedySearchOutput
 from .logger import setup_custom_logger
 
 logger = setup_custom_logger("TSP")
+logger.setLevel(logging.CRITICAL + 1)
 
 
 def generate_ensemnble_response(
@@ -164,7 +165,7 @@ def process_and_log_model_outputs(
 def synchronize_unfinished_sequences(unfinished_sequences_list):
     """
     This function synchronously updates the unfinished_sequences tensors across all states in a list.
-    If any position in one tensor is set to 0, the corresponding positions in all tensors are also set to 0, 
+    If any position in one tensor is set to 0, the corresponding positions in all tensors are also set to 0,
     assuming all tensors have the same shape.
     """
 
@@ -214,9 +215,9 @@ def update_input_ids_and_model_kwargs(model, state):
         - unfinished_sequences: The updated list indicating which sequences are still unfinished.
 
     The function pads input_ids and next_tokens to the same length, updates attention masks,
-    handles sequences that are finished by replacing tokens with pad_token_id, and adjusts 
+    handles sequences that are finished by replacing tokens with pad_token_id, and adjusts
     model_kwargs for the next generation step. It also trims unnecessary padding from input_ids
-    and attention_mask if any sequence has more than one token to add. Finally, it updates 
+    and attention_mask if any sequence has more than one token to add. Finally, it updates
     unfinished_sequences based on the presence of the eos_token_id.
     """
     outputs = state["outputs"]
@@ -299,9 +300,11 @@ def update_input_ids_and_model_kwargs(model, state):
 
         # Find the index of the first non-pad token for each sequence
         first_non_pad_indices = [
-            input_id.ne(pad_token_id).nonzero(as_tuple=True)[0][0].item()
-            if pad_token_id in input_id
-            else 0
+            (
+                input_id.ne(pad_token_id).nonzero(as_tuple=True)[0][0].item()
+                if pad_token_id in input_id
+                else 0
+            )
             for input_id in padded_input_ids_tensor
         ]
 
@@ -509,12 +512,12 @@ def get_vocab_union_and_mapping(tokenizers):
 def create_mapping_matrix(mapping, union_vocab_size, model_vocab_size):
     """
     Creates a sparse tensor mapping matrix for vocabulary translation.
-    
+
     Args:
     - mapping (dict): Maps model token IDs to unified vocabulary indexes.
     - union_vocab_size (int): Size of the unified vocabulary.
     - model_vocab_size (int): Size of the model's vocabulary.
-    
+
     Returns:
     - torch.sparse_coo_tensor: Sparse tensor in COO format with shape [model_vocab_size, union_vocab_size].
                                Each non-zero element (i, j) indicates a mapping from the i-th token in the
@@ -548,7 +551,7 @@ def create_mapping_matrix(mapping, union_vocab_size, model_vocab_size):
 
 
 def check_until(until, cached_batch_output_ids, tokenizers, merged_token_ids):
-    """ 
+    """
     Args:
     until (list of str): List of text for early stopping.
     cached_batch_output_ids (str): Cached output ids for until early stopping (batch,)
@@ -574,16 +577,16 @@ def check_until(until, cached_batch_output_ids, tokenizers, merged_token_ids):
 
 def check_threshold_ensemble(tmp_outputs_refs, primary_index, threshold):
     """
-    Checks if the highest confidence token from the primary model is below the given threshold 
-    for thresholded ensemble inference. If below the threshold, an ensemble is needed; 
+    Checks if the highest confidence token from the primary model is below the given threshold
+    for thresholded ensemble inference. If below the threshold, an ensemble is needed;
     otherwise, ensemble is not required and the computation for other models is canceled.
 
     Args:
         tmp_outputs_refs (list): A list of Ray-managed references to the next token outputs from different models.
         primary_index (int): The index of the primary model in the model list.
-        threshold (float): The confidence threshold for the primary model. If the model's highest probability 
+        threshold (float): The confidence threshold for the primary model. If the model's highest probability
                            exceeds this value, ensemble is not performed.
-    
+
     Returns:
         outputs (list): A list of model outputs. If ensemble is not needed, outputs from non-primary models are None.
         outputs_times (list): A list of processing times for each model's output.
@@ -635,8 +638,8 @@ def merge_and_convert_tokens(
     tmp_outputs_times,
 ):
     """
-    Merges the probability vectors from multiple models' outputs and converts the 
-    highest probability tokens into corresponding token IDs for each tokenizer. The 
+    Merges the probability vectors from multiple models' outputs and converts the
+    highest probability tokens into corresponding token IDs for each tokenizer. The
     function also handles special token replacements to ensure correct formatting and
     uses a special prefix token for tokenization processes.
 
@@ -650,15 +653,15 @@ def merge_and_convert_tokens(
     model_vocab_size is the size of the tokenizer's vocabulary.
     vocab_union (set): A set containing the union of all tokens from the tokenizers' vocabularies.
     index_to_vocab (dict): A dictionary mapping from unique index to tokens in the vocab_union.
-    special_prefix_token (dict): A dictionary mapping each tokenizer to its special prefix token, 
+    special_prefix_token (dict): A dictionary mapping each tokenizer to its special prefix token,
                                  used as a reference point for comparison in tokenization.
     primary_index(int): -1 or n, -1 will ensemble every token
     threshold(float): tokens with conf lower than threshold will be ensembled.
     need_ensemble (bool): A flag indicating whether ensemble processing is needed.
     tmp_outputs_times (list of float): Consumed time for each model.
-                            
+
     Returns:
-    list: A nested list of token IDs, where each inner list corresponds to the token IDs 
+    list: A nested list of token IDs, where each inner list corresponds to the token IDs
           for each tokenizer, based on the highest probability token from the merged output.
     """
     eos_token_list = [tokenizer.eos_token for tokenizer in tokenizers]
@@ -728,9 +731,9 @@ def merge_and_convert_tokens(
 
 def get_token_ids(tokenizer, token, special_prefix_token, byte_mapping):
     """
-    Tokenizes a given token and a special prefix token from the tokenizer's vocabulary, 
-    then finds the token IDs for the portion of the given token that does not overlap 
-    with the special prefix token. It is particularly useful for identifying unique sub-tokens 
+    Tokenizes a given token and a special prefix token from the tokenizer's vocabulary,
+    then finds the token IDs for the portion of the given token that does not overlap
+    with the special prefix token. It is particularly useful for identifying unique sub-tokens
     in tokenization processes. If initial tokenization does not meet expectations,
     it tries using ';' as an alternate special prefix token.
 
@@ -738,9 +741,9 @@ def get_token_ids(tokenizer, token, special_prefix_token, byte_mapping):
     tokenizer: An instance of a tokenizer class with an 'encode' method that converts
                text to a list of token IDs.
     token (str): The token to be tokenized and analyzed.
-    special_prefix_token (str): A special prefix token from the tokenizer's vocabulary, used as a 
-                                reference point for comparison. It is the shortest token starting with 
-                                a specific prefix ('▁' in most cases), which is neither part of any 
+    special_prefix_token (str): A special prefix token from the tokenizer's vocabulary, used as a
+                                reference point for comparison. It is the shortest token starting with
+                                a specific prefix ('▁' in most cases), which is neither part of any
                                 other token nor contains any other token.
     byte_mapping (dict): A dictionary mapping standard byte representations ('<0x00>' to '<0xFF>')
                          to their token IDs in the tokenizer's vocabulary.
@@ -785,11 +788,11 @@ def find_special_underscore_token(tokenizer):
     """
     Identifies the shortest special token in the tokenizer's vocabulary that starts with '▁',
     which is neither part of any other token nor contains any other token (except '▁' itself).
-    '▁' itself and tokens resulting in only whitespace after '▁' is removed are also excluded 
+    '▁' itself and tokens resulting in only whitespace after '▁' is removed are also excluded
     from the result.
-    
+
     Args:
-        tokenizer: An instance of a tokenizer class with a 'get_vocab()' method, returning 
+        tokenizer: An instance of a tokenizer class with a 'get_vocab()' method, returning
                    a dictionary of tokens and their IDs.
 
     Returns:
@@ -848,19 +851,19 @@ def find_special_underscore_token(tokenizer):
 
 def get_special_prefix_tokens_for_all(tokenizers):
     """
-    This function takes a list of tokenizers and returns a dictionary where each tokenizer is 
+    This function takes a list of tokenizers and returns a dictionary where each tokenizer is
     associated with its special prefix token. It utilizes a hypothetical function find_special_underscore_token
     which is assumed to return the special prefix token that each individual tokenizer can handle.
-    
+
     Args:
-    tokenizers (list): A list of tokenizer objects. Each tokenizer is assumed to have a 
+    tokenizers (list): A list of tokenizer objects. Each tokenizer is assumed to have a
                        method or functionality that allows the extraction of its special prefix token.
-    
+
     Returns:
-    dict: A dictionary where each key is a tokenizer from the input list, and the corresponding 
-          value is the special prefix token that the tokenizer can handle, as determined by calling 
+    dict: A dictionary where each key is a tokenizer from the input list, and the corresponding
+          value is the special prefix token that the tokenizer can handle, as determined by calling
           the find_special_underscore_token function.
-          
+
     Example:
     tokenizers = [tokenizer1, tokenizer2, ...]
     special_prefix_tokens = get_special_prefix_tokens_for_all(tokenizers)
@@ -1107,7 +1110,7 @@ def get_one_token(model, state):
 
     Returns:
     tuple: A tuple containing:
-        - next_tokens_scores(batch_size, vocabulary_size): The softmax-normalized scores for 
+        - next_tokens_scores(batch_size, vocabulary_size): The softmax-normalized scores for
         the next token in the sequence.
         - outputs: The model's outputs, including logits, attentions, and hidden states.
 

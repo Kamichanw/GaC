@@ -1,12 +1,14 @@
 import argparse
 from contextlib import asynccontextmanager
 from typing import Dict, List, Optional
-
+import logging
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from utils.gac_gen_call import *
 from utils.gac_gen_utils import *
+
+logging.set_verbosity(logging.CRITICAL)
 
 
 @asynccontextmanager
@@ -90,6 +92,10 @@ async def api_generate(request: GenerateRequest):
         else {"max_new_tokens": max_new_tokens}
     )
 
+    starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
+        enable_timing=True
+    )
+
     prepare_inputs = [
         model_actor.prepare_inputs_for_model.remote(
             chat_list, min_max_position_embeddings, apply_chat_template
@@ -99,6 +105,7 @@ async def api_generate(request: GenerateRequest):
     models_inputs = ray.get(prepare_inputs)
     input_ids_0 = models_inputs[0]
 
+    starter.record()
     output = generate_ensemnble_response(
         model_actors_list=model_actors_list,
         model_name_list=model_name_list,
@@ -113,12 +120,20 @@ async def api_generate(request: GenerateRequest):
         until=until,
         **length_param,
     )
+    ender.record()
+    torch.cuda.synchronize()
 
     generated_texts = extract_generated_texts(tokenizers[0], input_ids_0, output)
 
     logger.info(f"Generated text:{generated_texts}")
 
-    return {"response": generated_texts}
+    return {
+        "response": generated_texts,
+        "total_time": starter.elapsed_time(ender) / 1000,
+        "num_tokens": (len(output[0]) - len(input_ids_0[0])),
+        "num_tokens_per_sec": (len(output[0]) - len(input_ids_0[0]))
+        / (starter.elapsed_time(ender) / 1000),
+    }
 
 
 if __name__ == "__main__":
