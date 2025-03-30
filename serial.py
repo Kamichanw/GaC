@@ -57,7 +57,7 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(models[0].device)
     current_ids = input_ids.clone()
 
-    past_key_values = [DynamicCache() for _ in range(len(models))]
+    past_key_values = [None for _ in range(len(models))]
     cache_position = torch.arange(
         input_ids.shape[1], dtype=torch.int64, device="cuda:0"
     )
@@ -79,6 +79,7 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
                     cache_position=cache_position,
                 )
                 probs.append(torch.softmax(outputs.logits[:, -1, :], -1))
+                cache = outputs.past_key_values
 
         weighted_probs = torch.zeros_like(probs[0])
         for weight, prob in zip(ensemble_weights, probs):
@@ -124,7 +125,7 @@ def warpped_sampling(prompts, max_prompt_len, port=None):
         results["num_tokens_per_sec"].append(response["num_tokens_per_sec"])
         results["generated"].append(response["response"][0])
 
-        current_speed = response["num_tokens_per_sec"]
+        current_speed = np.mean(results["num_tokens_per_sec"])
         print(f"Current speed: {current_speed:.2f} tokens/sec")
 
     return results
