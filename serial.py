@@ -7,12 +7,14 @@ from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 import argparse
-from pathlib import Path
+from transformers import DynamicCache
+
 
 def load_config(path):
     with open(path) as f:
         config = yaml.safe_load(f)
     return config
+
 
 def load_models(path):
     config = load_config(path)
@@ -21,10 +23,13 @@ def load_models(path):
     scores = []
 
     for model_cfg in config["CONFIG_API_SERVER"]:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_cfg["weight"], torch_dtype=torch.float16
-        ).to("cuda:0").eval()
-        model.config.use_cache = False
+        model = (
+            AutoModelForCausalLM.from_pretrained(
+                model_cfg["weight"], torch_dtype=torch.float16
+            )
+            .to("cuda:0")
+            .eval()
+        )
 
         tokenizer = AutoTokenizer.from_pretrained(model_cfg["weight"])
 
@@ -39,7 +44,7 @@ def load_models(path):
     total_score = sum(scores)
     if config["NORM_TYPE_API_SERVER"] == "average":
         weights = [1 / len(models)] * len(models)
-    else: 
+    else:
         weights = [s / total_score for s in scores]
 
     return models, tokenizers[0], weights
@@ -52,23 +57,40 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(models[0].device)
     current_ids = input_ids.clone()
 
+    past_key_values = [DynamicCache() for _ in range(len(models))]
+    cache_position = torch.arange(
+        input_ids.shape[1], dtype=torch.int64, device="cuda:0"
+    )
+    attention_mask = torch.ones(
+        (input_ids.shape[0], input_ids.shape[1]), device=input_ids.device
+    )
     start, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
         enable_timing=True
     )
     start.record()
     for _ in range(max_new_tokens):
         with torch.no_grad():
-            all_logits = []
-            for model in models:
-                outputs = model(current_ids)
-                all_logits.append(outputs.logits[:, -1, :])
+            probs = []
+            for cache, model in zip(past_key_values, models):
+                outputs = model(
+                    current_ids,
+                    use_cache=True,
+                    past_key_values=cache,
+                    cache_position=cache_position,
+                )
+                probs.append(torch.softmax(outputs.logits[:, -1, :], -1))
 
-        weighted_probs = torch.zeros_like(all_logits[0])
-        for weight, logits in zip(ensemble_weights, all_logits):
-            weighted_probs += weight * torch.softmax(logits, -1)
+        weighted_probs = torch.zeros_like(probs[0])
+        for weight, prob in zip(ensemble_weights, probs):
+            weighted_probs += weight * prob
 
         next_token = torch.argmax(weighted_probs, dim=-1, keepdim=True)
         current_ids = torch.cat([current_ids, next_token], dim=-1)
+        attention_mask = torch.cat(
+            [attention_mask, attention_mask.new_ones((attention_mask.shape[0], 1))],
+            dim=-1,
+        )
+        cache_position = cache_position[-1:] + 1
 
         if next_token.item() == tokenizer.eos_token_id:
             break
@@ -144,6 +166,6 @@ if __name__ == "__main__":
     models, tokenizer, ensemble_weights = load_models(args.path)
 
     dataset = init_dataset(args.dataset_name, args.dataset_size, args.use_fewshot)
-    results = warpped_sampling(dataset.get_prompts(), max_prompt_len=256)
+    results = warpped_sampling(dataset.get_prompts(), max_prompt_len=128)
 
     process_result(results, dataset.evaluate)
