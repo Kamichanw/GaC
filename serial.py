@@ -61,9 +61,6 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
     cache_position = torch.arange(
         input_ids.shape[1], dtype=torch.int64, device="cuda:0"
     )
-    attention_mask = torch.ones(
-        (input_ids.shape[0], input_ids.shape[1]), device=input_ids.device
-    )
     start, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
         enable_timing=True
     )
@@ -71,15 +68,15 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
     for _ in range(max_new_tokens):
         with torch.no_grad():
             probs = []
-            for cache, model in zip(past_key_values, models):
+            for i, model in enumerate(models):
                 outputs = model(
                     current_ids,
                     use_cache=True,
-                    past_key_values=cache,
+                    past_key_values=past_key_values[i],
                     cache_position=cache_position,
                 )
                 probs.append(torch.softmax(outputs.logits[:, -1, :], -1))
-                cache = outputs.past_key_values
+                past_key_values[i] = outputs.past_key_values
 
         weighted_probs = torch.zeros_like(probs[0])
         for weight, prob in zip(ensemble_weights, probs):
@@ -87,10 +84,6 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
 
         next_token = torch.argmax(weighted_probs, dim=-1, keepdim=True)
         current_ids = torch.cat([current_ids, next_token], dim=-1)
-        attention_mask = torch.cat(
-            [attention_mask, attention_mask.new_ones((attention_mask.shape[0], 1))],
-            dim=-1,
-        )
         cache_position = cache_position[-1:] + 1
 
         if next_token.item() == tokenizer.eos_token_id:
