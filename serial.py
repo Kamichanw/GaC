@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 
+from transformers import DynamicCache
 
 def load_config(path):
     with open(path) as f:
@@ -54,18 +55,25 @@ models, tokenizer, ensemble_weights = None, None, None
 
 def ensemble_greedy_decode(input_text, max_new_tokens=20):
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(models[0].device)
+    original_len = input_ids.shape[1]
     current_ids = input_ids.clone()
 
     start, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
         enable_timing=True
     )
+    past_key_values = [DynamicCache() for _ in range(len(models))]
+    cache_position = torch.arange(input_ids.shape[1], dtype=torch.int64, device="cuda:0")
+
     start.record()
     for _ in range(max_new_tokens):
         with torch.no_grad():
             probs = []
             for i, model in enumerate(models):
                 outputs = model(
-                    current_ids,
+                    input_ids,
+                    cache_position=cache_position,
+                    past_key_values=past_key_values[i],
+                    use_cache=True,
                 )
                 probs.append(torch.softmax(outputs.logits[:, -1, :], -1))
 
@@ -75,6 +83,9 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
 
         next_token = torch.argmax(weighted_probs, dim=-1, keepdim=True)
         current_ids = torch.cat([current_ids, next_token], dim=-1)
+        input_ids = next_token
+
+        cache_position = cache_position[-1:] + 1
 
         if next_token.item() == tokenizer.eos_token_id:
             break
@@ -83,7 +94,7 @@ def ensemble_greedy_decode(input_text, max_new_tokens=20):
     torch.cuda.synchronize()
 
     total_time = start.elapsed_time(end) / 1000.0
-    num_tokens = current_ids.shape[1] - input_ids.shape[1]
+    num_tokens = current_ids.shape[1] - original_len
     return {
         "response": [tokenizer.decode(current_ids[0], skip_special_tokens=True)],
         "num_tokens": num_tokens,

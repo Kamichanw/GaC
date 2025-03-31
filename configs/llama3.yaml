@@ -13,12 +13,12 @@ CONFIG_API_SERVER:
     priority: 'supportive'
     quantization: 'none' # 'none'/'8bit'/'4bit'
   
-  # - weight: '/data/share/model_weight/llama/llama-3.1-8b-instruct' # or 'openchat/openchat-3.5-0106'
-  #   max_memory:
-  #     0: '24GiB'
-  #     1: '24GiB'
-  #   num_gpus: 1
-  #   name: 'llama-2-7b-68m'
-  #   score: 100
-  #   priority: 'supportive'
-  #   quantization: 'none' # 'none'/'8bit'/'4bit'
+  - weight: '/data/share/model_weight/llama/llama-3.1-8b-instruct' # or 'openchat/openchat-3.5-0106'
+    max_memory:
+      0: '24GiB'
+      1: '24GiB'
+    num_gpus: 1
+    name: 'llama-3.1-8b-instruct'
+    score: 100
+    priority: 'supportive'
+    quantization: 'none' # 'none'/'8bit'/'4bit'

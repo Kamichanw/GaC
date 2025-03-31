@@ -3,22 +3,22 @@
 NORM_TYPE_API_SERVER: 'average' # 'average' or 'score', 'score' means each model's output vector in the GaC ensemble is weighted by its score divided by the total score.
 THRESHOLD_API_SERVER: 1.0
 CONFIG_API_SERVER:
-  # - weight: '/data/share/model_weight/qwen/Qwen2.5-3B-Instruct' # or 'upstage/SOLAR-10.7B-Instruct-v1.0'
-  #   max_memory:
-  #     0: '24GiB'
-  #   device: 0
-  #   num_gpus: 0.5
-  #   name: 'qwen2.5-3b-instruct'
-  #   score: 100
-  #   priority: 'supportive'
-  #   quantization: 'none' # 'none'/'8bit'/'4bit'
-  
-  - weight: '/data/share/model_weight/qwen/Qwen2.5-Coder-3B-Instruct' # or 'openchat/openchat-3.5-0106'
+  - weight: '/data/share/model_weight/qwen/Qwen2.5-3B-Instruct' # or 'upstage/SOLAR-10.7B-Instruct-v1.0'
     max_memory:
       0: '24GiB'
-    device: 1
+    device: 0
     num_gpus: 0.5
-    name: 'qwen2.5-coder-3b-instruct'
+    name: 'qwen2.5-3b-instruct'
     score: 100
     priority: 'supportive'
     quantization: 'none' # 'none'/'8bit'/'4bit'
+  
+  # - weight: '/data/share/model_weight/qwen/Qwen2.5-Coder-3B-Instruct' # or 'openchat/openchat-3.5-0106'
+  #   max_memory:
+  #     0: '24GiB'
+  #   device: 1
+  #   num_gpus: 0.5
+  #   name: 'qwen2.5-coder-3b-instruct'
+  #   score: 100
+  #   priority: 'supportive'
+  #   quantization: 'none' # 'none'/'8bit'/'4bit'

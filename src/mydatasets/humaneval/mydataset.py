@@ -39,7 +39,8 @@ class MyDataset:
         return n_correct / len(preds)
 
     def check_correctness(self, problem, completion, timeout):
-        func = problem["prompt"] + "    " + completion.strip()
+        # func = problem["prompt"] + "    " + completion.strip()
+        func = completion.strip()
         code = (
             func
             + "\n\n"
