@@ -3,15 +3,15 @@
 NORM_TYPE_API_SERVER: 'average' # 'average' or 'score', 'score' means each model's output vector in the GaC ensemble is weighted by its score divided by the total score.
 THRESHOLD_API_SERVER: 1.0
 CONFIG_API_SERVER:
-  # - weight: '/data/share/model_weight/llama/Llama-2-7b-hf' # or 'upstage/SOLAR-10.7B-Instruct-v1.0'
-  #   max_memory:
-  #     0: '24GiB'
-  #     1: '24GiB'
-  #   num_gpus: 1
-  #   name: 'llama-2-7b'
-  #   score: 100
-  #   priority: 'supportive'
-  #   quantization: 'none' # 'none'/'8bit'/'4bit'
+  - weight: '/data/share/model_weight/llama/Llama-2-7b-hf' # or 'upstage/SOLAR-10.7B-Instruct-v1.0'
+    max_memory:
+      0: '24GiB'
+      1: '24GiB'
+    num_gpus: 1
+    name: 'llama-2-7b'
+    score: 100
+    priority: 'supportive'
+    quantization: 'none' # 'none'/'8bit'/'4bit'
   
   - weight: '/data/share/model_weight/vicuna/vicuna-7b-v1.3' # or 'openchat/openchat-3.5-0106'
     max_memory:

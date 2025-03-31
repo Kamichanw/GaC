@@ -13,12 +13,12 @@ CONFIG_API_SERVER:
     priority: 'supportive'
     quantization: 'none' # 'none'/'8bit'/'4bit'
   
-  # - weight: '/data/share/model_weight/qwen/Qwen2.5-Coder-3B-Instruct' # or 'openchat/openchat-3.5-0106'
-  #   max_memory:
-  #     0: '24GiB'
-  #   device: 1
-  #   num_gpus: 0.5
-  #   name: 'qwen2.5-coder-3b-instruct'
-  #   score: 100
-  #   priority: 'supportive'
-  #   quantization: 'none' # 'none'/'8bit'/'4bit'
+  - weight: '/data/share/model_weight/qwen/Qwen2.5-Coder-3B-Instruct' # or 'openchat/openchat-3.5-0106'
+    max_memory:
+      0: '24GiB'
+    device: 1
+    num_gpus: 0.5
+    name: 'qwen2.5-coder-3b-instruct'
+    score: 100
+    priority: 'supportive'
+    quantization: 'none' # 'none'/'8bit'/'4bit'
