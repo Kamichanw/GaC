@@ -1128,8 +1128,8 @@ def get_one_token(model, state):
     model_inputs = model.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
     # disable kv cache for speed testing
-    model_inputs['use_cache'] = False
-    model_inputs['past_key_values'] = None
+    # model_inputs['use_cache'] = False
+    # model_inputs['past_key_values'] = None
 
     with torch.no_grad():
         # forward pass to get next token
