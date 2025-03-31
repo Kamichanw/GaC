@@ -149,7 +149,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset_name", type=str, default="gsm8k", help="Dataset name"
     )
-    parser.add_argument("--dataset_size", type=int, default=5, help="Dataset size")
+    parser.add_argument("--dataset_size", type=int, default=50, help="Dataset size")
     parser.add_argument(
         "--use_fewshot", action="store_true", help="Use few-shot learning"
     )
@@ -162,6 +162,6 @@ if __name__ == "__main__":
     models, tokenizer, ensemble_weights = load_models(args.path)
 
     dataset = init_dataset(args.dataset_name, args.dataset_size, args.use_fewshot)
-    results = warpped_sampling(dataset.get_prompts(), max_prompt_len=128)
+    results = warpped_sampling(dataset.get_prompts(), max_prompt_len=256)
 
     process_result(results, dataset.evaluate)
